@@ -1,75 +1,75 @@
 {
-	"name": "@itsmeyaw/n8n-nodes-typesafe",
-	"version": "0.1.1",
-	"description": "n8n community node for TypeSafe AI decisions, routing, confidence review, and approvals",
-	"license": "MIT",
-	"homepage": "https://github.com/itsmeyaw/n8n-nodes-typesafe#readme",
-	"bugs": {
-		"url": "https://github.com/itsmeyaw/n8n-nodes-typesafe/issues"
-	},
-	"engines": {
-		"node": ">=20.15"
-	},
-	"keywords": [
-		"n8n-community-node-package",
-		"n8n",
-		"typesafe-ai",
-		"jev",
-		"classification",
-		"routing",
-		"confidence",
-		"human-in-the-loop",
-		"ai-agent",
-		"structured-decision",
-		"guardrail",
-		"approval"
-	],
-	"author": {
-		"name": "Yudhistira Arief Wibowo",
-		"email": "yudhistira.wibowo@itsmeyaw.id"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/itsmeyaw/n8n-nodes-typesafe.git"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"scripts": {
-		"build": "n8n-node build",
-		"build:watch": "tsc --watch",
-		"dev": "n8n-node dev",
-		"lint": "n8n-node lint",
-		"lint:fix": "n8n-node lint --fix",
-		"release": "n8n-node release",
-		"release:local": "GITHUB_TOKEN=\"$(gh auth token)\" CI=true n8n-node release --publish",
-		"test": "pnpm build && node --test test/*.test.cjs",
-		"verify:api": "node scripts/verify-api.mjs",
-		"prepublishOnly": "n8n-node prerelease"
-	},
-	"files": [
-		"dist",
-		"examples"
-	],
-	"n8n": {
-		"n8nNodesApiVersion": 1,
-		"strict": true,
-		"credentials": [
-			"dist/credentials/TypeSafeApi.credentials.js"
-		],
-		"nodes": [
-			"dist/nodes/TypeSafe/TypeSafe.node.js"
-		]
-	},
-	"devDependencies": {
-		"@n8n/node-cli": "0.49.1",
-		"eslint": "9.39.4",
-		"prettier": "3.8.3",
-		"release-it": "20.2.0",
-		"typescript": "5.9.3"
-	},
-	"peerDependencies": {
-		"n8n-workflow": "*"
-	},
-	"packageManager": "pnpm@11.27.1"
+  "name": "@itsmeyaw/n8n-nodes-typesafe",
+  "version": "0.1.2",
+  "description": "n8n community node for TypeSafe AI decisions, routing, confidence review, and approvals",
+  "keywords": [
+    "ai-agent",
+    "approval",
+    "classification",
+    "confidence",
+    "guardrail",
+    "human-in-the-loop",
+    "jev",
+    "n8n",
+    "n8n-community-node-package",
+    "routing",
+    "structured-decision",
+    "typesafe-ai"
+  ],
+  "homepage": "https://github.com/itsmeyaw/n8n-nodes-typesafe#readme",
+  "bugs": {
+    "url": "https://github.com/itsmeyaw/n8n-nodes-typesafe/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Yudhistira Arief Wibowo",
+    "email": "yudhistira.wibowo@itsmeyaw.id"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsmeyaw/n8n-nodes-typesafe.git"
+  },
+  "files": [
+    "dist",
+    "examples"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "n8n-node build",
+    "build:watch": "tsc --watch",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release",
+    "release:local": "GITHUB_TOKEN=\"$(gh auth token)\" CI=true n8n-node release --publish",
+    "test": "pnpm build && node --test test/*.test.cjs",
+    "verify:api": "node scripts/verify-api.mjs",
+    "prepublishOnly": "n8n-node prerelease"
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "0.49.1",
+    "eslint": "9.39.4",
+    "prettier": "3.8.3",
+    "release-it": "20.2.0",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "engines": {
+    "node": ">=20.15"
+  },
+  "packageManager": "pnpm@11.27.1",
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/TypeSafeApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/TypeSafe/TypeSafe.node.js"
+    ]
+  }
 }
