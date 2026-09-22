@@ -23,11 +23,23 @@
 
 ## Showcase
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/routing.png" alt="Confidence-aware ticket routing">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/scoring.png" alt="Score-based triage">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/yes-no-setting.png" alt="Yes-no decision setup">
-</p>
+<div align="center">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/routing.png" alt="Routing node" width="75%">
+  <br>
+  <em>Example: Route support tickets to the right team while sending uncertain decisions to Review.</em>
+</div>
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/scoring.png" alt="Scoring" width="75%">
+  <br>
+  <em>Example: Score incoming tickets and route high-priority cases automatically.</em>
+</div>
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/yes-no-setting.png" alt="Yes-no" width="75%">
+  <br>
+  <em>Example: Configure a Yes/No decision with explicit criteria for both outcomes.</em>
+</div>
 
 ## Installation
 
