@@ -25,7 +25,7 @@ jobs:
       - name: Verify tag matches package version
         run: |
           tag_version="${GITHUB_REF_NAME#v}"
-          package_version="$(node --print \"require('./package.json').version\")"
+          package_version="$(node --print "require('./package.json').version")"
           test "$tag_version" = "$package_version"
       - run: pnpm test
       - run: pnpm lint
