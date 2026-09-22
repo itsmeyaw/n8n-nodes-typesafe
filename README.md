@@ -5,7 +5,7 @@
     <a href="LICENSE"><img src="https://img.shields.io/npm/l/@itsmeyaw/n8n-nodes-typesafe.svg" alt="license"></a>
   </p>
   <p>
-    <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/main-showcase.png" alt="TypeSafe AI node showcase">
+    <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/.github/assets/screenshots/main-showcase.png" alt="TypeSafe AI node showcase">
   </p>
   <p>Make fast, typed decisions in n8n with <a href="https://typesafe.ai/">TypeSafe AI</a>'s Jev model. Classify, score, or evaluate yes/no questions, then route confident results automatically and send uncertain cases for review.</p>
   <p><strong>Ideal for:</strong> support triage, approvals, eligibility checks, guardrails, and AI Agent decisions that need a bounded answer instead of generated prose.</p>
@@ -36,21 +36,21 @@ See n8n's [community node installation guide](https://docs.n8n.io/integrations/c
 ## Showcase
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/routing.png" alt="Routing node" width="75%">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/.github/assets/screenshots/routing.png" alt="Routing node" width="75%">
   <br>
   <em>Example: Route support tickets to the right team while sending uncertain decisions to Review.</em>
 </div>
 <br/>
 <br/>
 <div align="center">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/scoring.png" alt="Scoring" width="75%">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/.github/assets/screenshots/scoring.png" alt="Scoring" width="75%">
   <br>
   <em>Example: Score incoming tickets and route high-priority cases automatically.</em>
 </div>
 <br/>
 <br/>
 <div align="center">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/yes-no-setting.png" alt="Yes-no" width="75%">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/.github/assets/screenshots/yes-no-setting.png" alt="Yes-no" width="75%">
   <br>
   <em>Example: Configure a Yes/No decision with explicit criteria for both outcomes.</em>
 </div>

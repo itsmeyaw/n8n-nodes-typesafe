@@ -30,7 +30,10 @@
     "url": "git+https://github.com/itsmeyaw/n8n-nodes-typesafe.git"
   },
   "files": [
-    "dist",
+    "dist/credentials/**/*.js",
+    "dist/nodes/**/*.js",
+    "dist/nodes/**/*.json",
+    "dist/nodes/**/*.svg",
     "examples"
   ],
   "publishConfig": {
@@ -43,9 +46,9 @@
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
-    "release:local": "GITHUB_TOKEN=\"$(gh auth token)\" CI=true n8n-node release --publish",
     "test": "pnpm build && node --test test/*.test.cjs",
     "verify:api": "node scripts/verify-api.mjs",
+    "package:check": "node scripts/check-package.mjs",
     "prepublishOnly": "n8n-node prerelease"
   },
   "devDependencies": {
