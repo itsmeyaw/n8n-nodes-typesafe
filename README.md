@@ -59,7 +59,7 @@ See n8n's [community node installation guide](https://docs.n8n.io/integrations/c
 
 Create an API key in the [TypeSafe console](https://console.typesafe.ai/keys), then add a **TypeSafe AI API** credential in n8n.
 
-Leave **Base URL** set to `https://api.typesafe.ai` unless you use a trusted proxy or dedicated deployment. The credential test and model picker call `GET /v1/models`.
+Leave **Base URL** set to `https://api.typesafe.ai` unless you use a trusted HTTPS proxy or dedicated deployment. The credential test checks the official TypeSafe endpoint; the model picker checks the configured Base URL.
 
 ## Operations
 
