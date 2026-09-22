@@ -28,6 +28,7 @@
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
+    "release:local": "GITHUB_TOKEN=\"$(gh auth token)\" CI=true n8n-node release --publish",
     "test": "pnpm build && node --test test/*.test.cjs",
     "verify:api": "node scripts/verify-api.mjs",
     "prepublishOnly": "n8n-node prerelease"

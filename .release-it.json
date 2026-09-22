@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/release-it@20/schema/release-it.json",
+  "git": {
+    "addUntrackedFiles": true,
+    "commitMessage": "Release ${version}"
+  },
+  "github": {
+    "release": true,
+    "tokenRef": "GITHUB_TOKEN"
+  },
+  "hooks": {
+    "after:bump": "npx auto-changelog -p"
+  }
+}

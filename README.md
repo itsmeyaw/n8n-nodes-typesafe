@@ -110,6 +110,10 @@ Run `pnpm dev` to load the node in a local n8n development instance.
 Run `TYPESAFE_API_KEY=... pnpm verify:api` to check model discovery and all three answer
 types against the live API.
 
+Run `pnpm release:local` to publish a patch release without prompts. It requires authenticated
+`npm` and `gh` CLIs, then runs validation, publishes to npm, commits the changelog and version,
+pushes the tag, and creates the GitHub release.
+
 ## Resources
 
 - [TypeSafe documentation](https://docs.typesafe.ai/)
