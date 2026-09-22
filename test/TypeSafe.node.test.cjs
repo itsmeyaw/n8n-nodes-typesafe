@@ -39,7 +39,15 @@ test('builds one batched Jev request from guided questions', async () => {
 			httpRequestWithAuthentication: async function (type, options) {
 				credentialType = type;
 				request = options;
-				return { model: 'jev-1.13.0', answers: {}, usage: {} };
+				return {
+					model: 'jev-1.13.0',
+					answers: {
+						department: { type: 'choice', choice: 'billing', confidence: 0.9 },
+						frustration: { type: 'score', score: 1, confidence: 0.9 },
+						urgent: { type: 'noul', noul: 0.9 },
+					},
+					usage: {},
+				};
 			},
 			returnJsonArray: (value) => [{ json: value }],
 		},
@@ -96,7 +104,7 @@ test('returns raw-question validation errors when continue on fail is enabled', 
 	const result = await new TypeSafe().execute.call(context);
 
 	assert.equal(requested, false);
-	assert.match(result[0][0].json.error, /2 to 10 valid criteria levels/);
+	assert.match(result[0][0].json.typesafeJev.error.message, /2 to 10 valid criteria levels/);
 	assert.deepEqual(result[0][0].pairedItem, { item: 0 });
 });
 
@@ -195,16 +203,15 @@ test('supports simplified answers, custom append field, timeout, and request ID'
 		simplify: true,
 		options: { outputField: 'decision', includeRequestId: true, timeout: 5000 },
 	};
-	const { context, getRequest } = makeContext(parameters, response);
+	const { context, getRequest } = makeContext(parameters, {
+		...response,
+		body: { ...response.body, answers: { urgent: response.body.answers.urgent } },
+	});
 
 	const result = await new TypeSafe().execute.call(context);
 
 	assert.equal(result[0][0].json.ticket, 'T-1');
-	assert.deepEqual(result[0][0].json.decision.answers, {
-		intent: 'billing',
-		urgent: 0.88,
-		frustration: 1.4,
-	});
+	assert.deepEqual(result[0][0].json.decision.answers, { urgent: 0.88 });
 	assert.equal(result[0][0].json.decision.requestId, 'req_123');
 	assert.equal(getRequest().timeout, 5000);
 });
@@ -408,7 +415,7 @@ test('bypasses Review when best-decision handling is selected', async () => {
 
 	const result = await new TypeSafe().execute.call(context);
 
-	assert.equal(result.length, 2);
+	assert.equal(result.length, 3);
 	assert.equal(result[0][0].json.typesafeJev.review, false);
 });
 
@@ -448,5 +455,109 @@ test('sends Continue On Fail routing errors to Review', async () => {
 	const result = await new TypeSafe().execute.call(context);
 
 	assert.equal(result[0].length, 0);
-	assert.match(result[2][0].json.error, /500/);
+	assert.match(result[2][0].json.typesafeJev.error.message, /500/);
+});
+
+test('adds an Error output for best-decision routes and preserves failed items there', async () => {
+	const node = new TypeSafe();
+	const expression = node.description.outputs;
+	const evaluate = new Function('$parameter', `return ${expression.slice(3, -2)}`);
+	assert.deepEqual(
+		evaluate({ operation: 'route', decisionType: 'noul', reviewHandling: 'bestDecision' }),
+		[
+			{ type: 'main', displayName: 'Yes' },
+			{ type: 'main', displayName: 'No' },
+			{ type: 'main', displayName: 'Error' },
+		],
+	);
+
+	const parameters = {
+		operation: 'route',
+		model: 'jev-latest',
+		stateInput: 'inputItem',
+		decisionType: 'noul',
+		routeInstructions: 'Decide',
+		reviewHandling: 'bestDecision',
+		options: {},
+	};
+	const failure = { __error: { statusCode: 500, response: { body: { detail: 'Unavailable' } } } };
+	const items = [
+		{
+			json: { ticket: 'T-1', typesafeJev: { prior: true } },
+			binary: { file: {} },
+			pairedItem: { item: 42, input: 1 },
+		},
+	];
+	const { context } = makeContext(parameters, failure, items, true);
+
+	const result = await node.execute.call(context);
+
+	assert.equal(result.length, 3);
+	assert.equal(result[0].length, 0);
+	assert.equal(result[1].length, 0);
+	assert.deepEqual(result[2][0].json.typesafeJev, { prior: true });
+	assert.match(result[2][0].json.typesafeJevError.error.message, /500/);
+	assert.deepEqual(result[2][0].binary, { file: {} });
+	assert.deepEqual(result[2][0].pairedItem, { item: 42, input: 1 });
+});
+
+test('rejects invalid System One answer envelopes before output formatting', async () => {
+	const parameters = {
+		operation: 'evaluate',
+		model: 'jev-latest',
+		stateInput: 'inputItem',
+		questionInput: 'json',
+		questionsJson: {
+			intent: { type: 'choice', instructions: 'Choose', criteria: { billing: null, technical: null } },
+			urgent: { type: 'noul', instructions: 'Urgent?' },
+			score: { type: 'score', instructions: 'Rate', criteria: ['Low', 'High'] },
+		},
+		output: 'responseOnly',
+		options: {},
+	};
+	const validAnswers = {
+		intent: { type: 'choice', choice: 'billing', confidence: 0.8 },
+		urgent: { type: 'noul', noul: 0.8 },
+		score: { type: 'score', score: 1.4, confidence: 0.8 },
+	};
+	const invalidAnswers = [
+		null,
+		{ ...validAnswers, extra: { type: 'noul', noul: 0.5 } },
+		{ intent: validAnswers.intent, urgent: validAnswers.urgent },
+		{ ...validAnswers, intent: { ...validAnswers.intent, type: 'score' } },
+		{ ...validAnswers, intent: { ...validAnswers.intent, choice: 'sales' } },
+		{ ...validAnswers, urgent: { type: 'noul', noul: 1.1 } },
+		{ ...validAnswers, score: { ...validAnswers.score, score: 2.1 } },
+	];
+
+	for (const answers of invalidAnswers) {
+		const { context } = makeContext(parameters, { body: { model: 'jev-1.13.0', answers, usage: {} } });
+		await assert.rejects(() => new TypeSafe().execute.call(context), /TypeSafe returned invalid/);
+	}
+});
+
+test('rejects null raw instructions and more than 255 Choice routes', async () => {
+	const rawParameters = {
+		operation: 'evaluate',
+		model: 'jev-latest',
+		stateInput: 'inputItem',
+		questionInput: 'json',
+		questionsJson: { urgent: { type: 'noul', instructions: null } },
+		options: {},
+	};
+	const { context } = makeContext(rawParameters, response);
+	await assert.rejects(() => new TypeSafe().execute.call(context), /needs valid instructions/);
+
+	const parameters = {
+		operation: 'route',
+		model: 'jev-latest',
+		stateInput: 'inputItem',
+		decisionType: 'choice',
+		routeInstructions: 'Choose',
+		'choiceRoutes.routes': Array.from({ length: 256 }, (_, index) => ({ name: `route-${index}` })),
+		reviewHandling: 'review',
+		options: {},
+	};
+	const route = makeContext(parameters, response);
+	await assert.rejects(() => new TypeSafe().execute.call(route.context), /between 2 and 255 routes/);
 });

@@ -143,6 +143,10 @@ function isStructuredValue(value: unknown): boolean {
 	return value === null || typeof value === 'string' || typeof value === 'object';
 }
 
+function isInstructionValue(value: unknown): boolean {
+	return value !== null && (typeof value === 'string' || typeof value === 'object');
+}
+
 function validateQuestions(node: INode, questions: IDataObject): IDataObject {
 	for (const [id, value] of Object.entries(questions)) {
 		if (!id.trim()) throw new NodeOperationError(node, 'Every question needs an ID');
@@ -156,7 +160,7 @@ function validateQuestions(node: INode, questions: IDataObject): IDataObject {
 		}
 		if (
 			!Object.prototype.hasOwnProperty.call(question, 'instructions') ||
-			!isStructuredValue(question.instructions)
+			!isInstructionValue(question.instructions)
 		) {
 			throw new NodeOperationError(node, `Question "${id}" needs valid instructions`);
 		}
@@ -263,6 +267,8 @@ function configuredOutputs(parameters: IDataObject) {
 	const outputs = names.map((displayName) => ({ type: 'main', displayName }));
 	if (parameters.reviewHandling !== 'bestDecision') {
 		outputs.push({ type: 'main', displayName: 'Review' });
+	} else {
+		outputs.push({ type: 'main', displayName: 'Error' });
 	}
 	return outputs;
 }
@@ -282,7 +288,9 @@ function buildRouteQuestion(
 	if (!text) throw new NodeOperationError(node, 'Routing instructions cannot be empty');
 	if (type === 'choice') {
 		const routes = parameters.routes ?? [];
-		if (routes.length < 2) throw new NodeOperationError(node, 'Add at least two routes');
+		if (routes.length < 2 || routes.length > 255) {
+			throw new NodeOperationError(node, 'Add between 2 and 255 routes');
+		}
 		const criteria: IDataObject = {};
 		for (const route of routes) {
 			const name = route.name?.trim() ?? '';
@@ -303,6 +311,105 @@ function buildRouteQuestion(
 	if (parameters.trueCriteria?.trim()) criteria.true = parameters.trueCriteria.trim();
 	if (parameters.falseCriteria?.trim()) criteria.false = parameters.falseCriteria.trim();
 	return { type, instructions: text, ...(Object.keys(criteria).length ? { criteria } : {}) };
+}
+
+function invalidResponse(node: INode, message: string): never {
+	throw new NodeOperationError(node, `TypeSafe returned invalid System One response: ${message}`);
+}
+
+function validateSystemOneResponse(
+	node: INode,
+	data: SystemOneResponse,
+	questions: IDataObject,
+): SystemOneResponse {
+	if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+		invalidResponse(node, 'expected an object');
+	}
+	if (typeof data.answers !== 'object' || data.answers === null || Array.isArray(data.answers)) {
+		invalidResponse(node, 'answers must be an object');
+	}
+
+	const answerIds = Object.keys(data.answers);
+	const questionIds = Object.keys(questions);
+	if (
+		answerIds.length !== questionIds.length ||
+		answerIds.some((id) => !Object.prototype.hasOwnProperty.call(questions, id))
+	) {
+		invalidResponse(node, 'answers do not match the requested question IDs');
+	}
+
+	for (const id of questionIds) {
+		const question = questions[id] as IDataObject;
+		const answer = data.answers[id];
+		if (typeof answer !== 'object' || answer === null || Array.isArray(answer)) {
+			invalidResponse(node, `answer "${id}" must be an object`);
+		}
+		if (answer.type !== question.type) {
+			invalidResponse(node, `answer "${id}" has an unexpected type`);
+		}
+		if (answer.type === 'choice') {
+			const criteria = question.criteria as IDataObject;
+			if (typeof answer.choice !== 'string' || !Object.prototype.hasOwnProperty.call(criteria, answer.choice)) {
+				invalidResponse(node, `answer "${id}" has an unknown choice`);
+			}
+			if (
+				typeof answer.confidence !== 'number' ||
+				!Number.isFinite(answer.confidence) ||
+				answer.confidence < 0 ||
+				answer.confidence > 1
+			) {
+				invalidResponse(node, `answer "${id}" has invalid confidence`);
+			}
+		}
+		if (answer.type === 'noul') {
+			if (
+				typeof answer.noul !== 'number' ||
+				!Number.isFinite(answer.noul) ||
+				answer.noul < 0 ||
+				answer.noul > 1
+			) {
+				invalidResponse(node, `answer "${id}" has an invalid Noul probability`);
+			}
+		}
+		if (answer.type === 'score') {
+			const levels = question.criteria as unknown[];
+			if (
+				typeof answer.score !== 'number' ||
+				!Number.isFinite(answer.score) ||
+				answer.score < 0 ||
+				answer.score > levels.length
+			) {
+				invalidResponse(node, `answer "${id}" has an invalid score`);
+			}
+			if (
+				typeof answer.confidence !== 'number' ||
+				!Number.isFinite(answer.confidence) ||
+				answer.confidence < 0 ||
+				answer.confidence > 1
+			) {
+				invalidResponse(node, `answer "${id}" has invalid confidence`);
+			}
+		}
+	}
+
+	return data;
+}
+
+function errorField(json: IDataObject, outputField: string): string {
+	if (!Object.prototype.hasOwnProperty.call(json, outputField)) return outputField;
+	let suffix = 0;
+	let field = `${outputField}Error`;
+	while (Object.prototype.hasOwnProperty.call(json, field)) field = `${outputField}Error${++suffix}`;
+	return field;
+}
+
+function errorDetails(error: unknown): IDataObject {
+	const value = error as { message?: unknown; description?: unknown; httpCode?: unknown };
+	return {
+		message: value instanceof Error ? value.message : String(error),
+		...(typeof value.description === 'string' ? { description: value.description } : {}),
+		...(typeof value.httpCode === 'string' ? { httpCode: value.httpCode } : {}),
+	};
 }
 
 function routeDecision(
@@ -762,7 +869,7 @@ export class TypeSafe implements INodeType {
 				? choiceRoutes.map((route) => route.name?.trim() ?? '')
 				: ['Pass', 'Fail'];
 		const review = operation === 'route' && this.getNodeParameter('reviewHandling', 0, 'review') === 'review';
-		const outputCount = operation === 'route' ? routeNames.length + (review ? 1 : 0) : 1;
+		const outputCount = operation === 'route' ? routeNames.length + 1 : 1;
 		const returnData: INodeExecutionData[][] = Array.from(
 			{ length: Math.max(outputCount, 1) },
 			() => [],
@@ -839,6 +946,7 @@ export class TypeSafe implements INodeType {
 						itemIndex,
 					},
 				);
+				validateSystemOneResponse(node, data, questions);
 
 				const outputField = options.outputField?.trim() || 'typesafeJev';
 				if (operation === 'route') {
@@ -886,10 +994,17 @@ export class TypeSafe implements INodeType {
 				});
 			} catch (error) {
 				if (this.continueOnFail()) {
-					const errorOutput = operation === 'route' && review ? routeNames.length : 0;
+					const outputField = (
+						this.getNodeParameter('options', itemIndex, {}) as { outputField?: string }
+					).outputField?.trim() || 'typesafeJev';
+					const errorOutput = operation === 'route' ? routeNames.length : 0;
 					returnData[errorOutput].push({
-						json: { ...items[itemIndex].json, error: (error as Error).message },
-						pairedItem: { item: itemIndex },
+						json: {
+							...items[itemIndex].json,
+							[errorField(items[itemIndex].json, outputField)]: { error: errorDetails(error) },
+						},
+						binary: items[itemIndex].binary,
+						pairedItem: items[itemIndex].pairedItem ?? { item: itemIndex },
 					});
 					continue;
 				}
