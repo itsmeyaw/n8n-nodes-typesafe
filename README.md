@@ -1,90 +1,126 @@
-# @itsmeyaw/n8n-nodes-typesafe
+<div align="center">
+  <h1>@itsmeyaw/n8n-nodes-typesafe</h1>
+  <p>
+    <a href="https://www.npmjs.com/package/@itsmeyaw/n8n-nodes-typesafe"><img src="https://img.shields.io/npm/v/@itsmeyaw/n8n-nodes-typesafe.svg" alt="npm version"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/npm/l/@itsmeyaw/n8n-nodes-typesafe.svg" alt="license"></a>
+  </p>
+  <p>
+    <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/main-showcase.png" alt="TypeSafe AI node showcase">
+  </p>
+  <p>Make fast, typed decisions in n8n with <a href="https://typesafe.ai/">TypeSafe AI</a>'s Jev model. Classify, score, or evaluate yes/no questions, then route confident results automatically and send uncertain cases for review.</p>
+  <p><strong>Ideal for:</strong> support triage, approvals, eligibility checks, guardrails, and AI Agent decisions that need a bounded answer instead of generated prose.</p>
+</div>
 
-Turn support messages, policy checks, and other structured state into typed decisions in n8n. TypeSafe AI's Jev model returns a choice, score, or yes/no probability so a workflow can route confidently—and send uncertain cases to a person.
+## Features
 
-**Good for:** support triage, approvals, eligibility checks, risk guardrails, and AI Agent decisions that need a bounded answer rather than generated prose.
+- Choice, Score, and Yes/No decisions
+- Guided fields or raw TypeSafe question objects
+- Confidence-aware Choice, Pass/Fail, Yes/No, and Review outputs
+- Live model discovery with support for pinned model IDs
+- Full response, simplified answers, or results appended to the input item
+- Configurable timeout, Base URL, output field, and request ID tracing
+- Native n8n AI Agent tool support
 
-**Not for:** drafting text, arithmetic, counting, date logic, or a decision that must be deterministic. Keep those in normal n8n logic.
+## Showcase
 
-## Install and status
+<p align="center">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/ticket-routing.png" alt="Confidence-aware ticket routing">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/multi-question-evaluation.png" alt="Multi-question evaluation">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/ai-agent-tool.png" alt="TypeSafe AI Agent tool">
+</p>
 
-Install `@itsmeyaw/n8n-nodes-typesafe` using n8n's [community-node guide](https://docs.n8n.io/integrations/community-nodes/installation/).
+## Installation
 
-This is an **unverified** community node. Unverified npm community nodes are for self-hosted n8n; they aren't available on n8n Cloud. It is built with `@n8n/node-cli` 0.49.1 and requires Node.js 20.15 or newer. Test it against the n8n version you run before promoting a workflow.
+This is currently an **unverified community node** and is available for self-hosted n8n.
 
-## Start here
+In n8n, open **Settings > Community Nodes**, select **Install**, and enter:
 
-1. Create a **TypeSafe AI API** credential with a key from the [TypeSafe console](https://console.typesafe.ai/keys). The credential test and model picker call `GET /v1/models`.
-2. Add **TypeSafe AI** and choose **Evaluate Questions** for typed values or **Decide and Route** for branches.
-3. Start with a small, relevant JSON state and a pinned Jev model for production thresholds.
+```text
+@itsmeyaw/n8n-nodes-typesafe
+```
 
-Import one of the focused examples:
+See n8n's [community node installation guide](https://docs.n8n.io/integrations/community-nodes/installation-and-management/) for other installation methods.
 
-- [Support routing with Review](examples/ticket-routing.workflow.json)
+## Credentials
+
+Create an API key in the [TypeSafe console](https://console.typesafe.ai/keys), then add a **TypeSafe AI API** credential in n8n.
+
+Leave **Base URL** set to `https://api.typesafe.ai` unless you use a trusted proxy or dedicated deployment. The credential test and model picker call `GET /v1/models`.
+
+## Operations
+
+### Evaluate Questions
+
+Evaluate one or more Choice, Score, or Yes/No questions in a single request. Use **Guided** input for common cases or **Raw JSON** for structured instructions and criteria.
+
+```json
+{
+ "team": {
+  "type": "choice",
+  "instructions": "Which team should handle this ticket?",
+  "criteria": {
+   "Billing": "Payments, invoices, charges, or refunds",
+   "Technical": "Bugs, outages, or integrations"
+  }
+ },
+ "urgent": {
+  "type": "noul",
+  "instructions": "Does this need action today?"
+ }
+}
+```
+
+With **Simplify** enabled, the answers become easy-to-use values:
+
+```json
+{
+ "team": "Billing",
+ "urgent": 0.91
+}
+```
+
+### Decide and Route
+
+Turn one decision directly into workflow branches:
+
+| Decision                         | Outputs                         |
+| -------------------------------- | ------------------------------- |
+| Choice                           | One output per configured route |
+| Yes/No                           | Yes, No                         |
+| Score                            | Pass, Fail                      |
+| Low confidence                   | Review                          |
+| Continued failure without Review | Error                           |
+
+Route names determine canvas output order. Recheck connections after renaming or reordering routes.
+
+## Examples
+
+- [Support routing with human review](examples/ticket-routing.workflow.json)
 - [Multi-question evaluation](examples/multi-question-evaluate.workflow.json)
 - [AI Agent decision tool](examples/ai-agent-tool.workflow.json)
 
-## Evaluate questions
+Import a workflow, then select your TypeSafe credential. The AI Agent example also requires a chat-model credential.
 
-One incoming item produces one API request. Items are processed **serially**; multiple questions for that item are batched into that request.
+## Usage Notes
 
-Use **Guided** input for ordinary Choice, Score, and Yes/No questions. Use **Raw JSON** when your instructions or criteria are structured. Raw input is a non-empty object of **TypeSafe question objects**, not JSON Schema:
+- Use `jev-latest` for experiments and pin a versioned model ID for production thresholds.
+- Keep state small and relevant. Jev is not intended for text generation, arithmetic, counting, or deterministic business rules.
+- One API request is made per input item; questions for that item are batched together.
+- **Append to Item** and routed outputs preserve input JSON and binary data. Replacement output modes omit binary data.
+- **Continue On Fail** preserves the input and sends routing failures to Review or Error.
+- Use n8n's **Retry On Fail** setting for transient `429` or `529` responses.
 
-```json
-{
-	"team": {
-		"type": "choice",
-		"instructions": "Which team should handle this ticket?",
-		"criteria": {
-			"Billing": "Payments, invoices, charges, or refunds",
-			"Technical": "Bugs, outages, or integrations"
-		}
-	},
-	"urgent": {
-		"type": "noul",
-		"instructions": "Does the customer need action today?"
-	}
-}
-```
+## Compatibility
 
-Write questions with a single decision, mutually distinct Choice labels, and concrete criteria. Put facts in state, not in the question; do not ask Jev to infer missing facts. Score criteria are ordered from low to high (2–10 levels).
+- Node.js 20.15 or newer
+- Built with `@n8n/node-cli` 0.49.1
+- Unverified packages require a self-hosted n8n instance
 
-With **Answers Only** and **Simplify** enabled, the example above produces this exact output shape:
+Test the node against your n8n version before promoting workflows to production.
 
-```json
-{
-	"team": "Billing",
-	"urgent": 0.91
-}
-```
+## Privacy
 
-The `urgent` value is the probability that the statement is true. Without Simplify, answers include their type and model-provided decision details.
-
-### State, output, and failures
-
-- **Whole Input Item** sends the incoming item's JSON only; it never sends binary data. **Text** and **JSON** send the value configured in the node.
-- **Append to Item** keeps the input JSON and binary data. **Answers Only** and **Response Only** replace the JSON and omit binary data.
-- Successful **Decide and Route** outputs keep the input binary data. Its selected outcome, confidence, raw TypeSafe response, and optional request ID are appended under **Output Field Name**.
-- **Include Request ID** adds the `x-typesafe-request-id` response header only when TypeSafe returned one. API error descriptions also include a returned request ID when available.
-- n8n's **Continue On Fail** preserves the incoming JSON, binary data, and item pairing. Error details are added under **Output Field Name** (or a non-conflicting `Error`-suffixed field). Routing failures go to **Review**, or to the dedicated **Error** output when low-confidence decisions use the best result.
-
-## Decide and route
-
-**Choice** creates one output per route, **Yes/No** creates Yes and No, and **Score** creates Pass and Fail. Decisions below the confidence threshold can go to **Review** for human approval or a slower fallback.
-
-Route names define both the decision criteria and canvas output order. Recheck connections after renaming or reordering configured routes.
-
-## AI Agent setup
-
-The node is usable as an n8n AI Agent tool. In the agent canvas, connect the TypeSafe AI node's **tool** connection to the AI Agent and connect a chat model to the agent. Configure TypeSafe's text state with `$fromAI()` so the agent can provide the state, then give the agent a prompt such as “Use the TypeSafe tool before assigning a support team.” The [AI Agent example](examples/ai-agent-tool.workflow.json) has this wiring; add your TypeSafe and chat-model credentials after import.
-
-## Model and privacy
-
-`jev-latest` is convenient for experiments. Pin a versioned model ID, such as `jev-1.13.0`, when routes, thresholds, or approvals depend on stable behavior.
-
-The node sends the selected state, questions, and model ID to the configured TypeSafe Base URL. Whole-item state is the item's JSON, not its binary attachments. The API key is sent by n8n as a bearer credential. Send only information needed for the decision and review TypeSafe's policies before sending sensitive data. Change **Base URL** only for a proxy or dedicated TypeSafe deployment.
-
-For transient `429` or `529` responses, use n8n's **Retry On Fail** node setting.
+The node sends the selected state, questions, and model ID to the configured TypeSafe Base URL. Whole-item state includes JSON only, never binary attachments. Send only data required for the decision and review TypeSafe's policies before processing sensitive information.
 
 ## Development
 
@@ -95,14 +131,17 @@ pnpm lint
 pnpm build
 ```
 
-Run `pnpm dev` to load the node in a local n8n development instance. Run `TYPESAFE_API_KEY=... pnpm verify:api` to check model discovery and answer types against the live API.
+Run `pnpm dev` for a local n8n instance or `TYPESAFE_API_KEY=... pnpm verify:api` for a live API check.
 
 ## Resources
 
 - [TypeSafe documentation](https://docs.typesafe.ai/)
 - [Jev model documentation](https://docs.typesafe.ai/models)
 - [TypeSafe API reference](https://docs.typesafe.ai/api)
-- [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
+- [n8n community nodes](https://docs.n8n.io/integrations/community-nodes/)
+- [Issues and support](https://github.com/itsmeyaw/n8n-nodes-typesafe/issues)
+
+This is an independent community integration and is not an official TypeSafe AI or n8n package.
 
 ## License
 
