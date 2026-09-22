@@ -28,13 +28,15 @@
   <br>
   <em>Example: Route support tickets to the right team while sending uncertain decisions to Review.</em>
 </div>
-
+<br/>
+<br/>
 <div align="center">
   <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/scoring.png" alt="Scoring" width="75%">
   <br>
   <em>Example: Score incoming tickets and route high-priority cases automatically.</em>
 </div>
-
+<br/>
+<br/>
 <div align="center">
   <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/yes-no-setting.png" alt="Yes-no" width="75%">
   <br>
