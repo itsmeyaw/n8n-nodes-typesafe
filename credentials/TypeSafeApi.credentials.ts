@@ -51,7 +51,7 @@ export class TypeSafeApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL:
-				'={{$credentials.baseUrl?.startsWith("https://") ? $credentials.baseUrl.replace(/\\/+$/, "") : "https://invalid.invalid"}}',
+				'={{$credentials.baseUrl?.toLowerCase().startsWith("https://") ? $credentials.baseUrl.replace(/\\/+$/, "") : "https://invalid.invalid"}}',
 			url: '/v1/models',
 			method: 'GET',
 		},

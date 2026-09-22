@@ -8,7 +8,7 @@ test('credential tests use only a configured HTTPS Base URL', () => {
 	const credential = new TypeSafeApi();
 
 	assert.match(String(credential.test.request.baseURL), /\$credentials\.baseUrl/);
-	assert.match(String(credential.test.request.baseURL), /startsWith\(\"https:\/\/\"\)/);
+	assert.match(String(credential.test.request.baseURL), /toLowerCase\(\)\.startsWith\(\"https:\/\/\"\)/);
 	assert.match(String(credential.test.request.baseURL), /https:\/\/invalid\.invalid/);
 });
 
