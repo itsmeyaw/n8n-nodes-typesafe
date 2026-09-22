@@ -11,6 +11,18 @@
   <p><strong>Ideal for:</strong> support triage, approvals, eligibility checks, guardrails, and AI Agent decisions that need a bounded answer instead of generated prose.</p>
 </div>
 
+## Installation
+
+This is currently an **unverified community node** and is available for self-hosted n8n.
+
+In n8n, open **Settings > Community Nodes**, select **Install**, and enter:
+
+```text
+@itsmeyaw/n8n-nodes-typesafe
+```
+
+See n8n's [community node installation guide](https://docs.n8n.io/integrations/community-nodes/installation-and-management/) for other installation methods.
+
 ## Features
 
 - Choice, Score, and Yes/No decisions
@@ -42,18 +54,6 @@
   <br>
   <em>Example: Configure a Yes/No decision with explicit criteria for both outcomes.</em>
 </div>
-
-## Installation
-
-This is currently an **unverified community node** and is available for self-hosted n8n.
-
-In n8n, open **Settings > Community Nodes**, select **Install**, and enter:
-
-```text
-@itsmeyaw/n8n-nodes-typesafe
-```
-
-See n8n's [community node installation guide](https://docs.n8n.io/integrations/community-nodes/installation-and-management/) for other installation methods.
 
 ## Credentials
 
