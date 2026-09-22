@@ -5,7 +5,7 @@
     <a href="LICENSE"><img src="https://img.shields.io/npm/l/@itsmeyaw/n8n-nodes-typesafe.svg" alt="license"></a>
   </p>
   <p>
-    <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/main-showcase.png" alt="TypeSafe AI node showcase">
+    <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/main-showcase.png" alt="TypeSafe AI node showcase">
   </p>
   <p>Make fast, typed decisions in n8n with <a href="https://typesafe.ai/">TypeSafe AI</a>'s Jev model. Classify, score, or evaluate yes/no questions, then route confident results automatically and send uncertain cases for review.</p>
   <p><strong>Ideal for:</strong> support triage, approvals, eligibility checks, guardrails, and AI Agent decisions that need a bounded answer instead of generated prose.</p>
@@ -24,9 +24,9 @@
 ## Showcase
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/ticket-routing.png" alt="Confidence-aware ticket routing">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/multi-question-evaluation.png" alt="Multi-question evaluation">
-  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/ai-agent-tool.png" alt="TypeSafe AI Agent tool">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/routing.png" alt="Confidence-aware ticket routing">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/scoring.png" alt="Score-based triage">
+  <img src="https://raw.githubusercontent.com/itsmeyaw/n8n-nodes-typesafe/main/assets/screenshots/yes-no-setting.png" alt="Yes-no decision setup">
 </p>
 
 ## Installation
