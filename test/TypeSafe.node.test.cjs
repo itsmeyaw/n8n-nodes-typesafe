@@ -120,6 +120,7 @@ function makeContext(parameters, response, items = [{ json: { ticket: 'T-1' } }]
 				httpRequestWithAuthentication: async (_type, options) => {
 				request = options;
 				if (response.__error) throw response.__error;
+				if (Object.prototype.hasOwnProperty.call(response, '__throw')) throw response.__throw;
 				return response;
 			},
 		},
@@ -508,7 +509,7 @@ test('rejects invalid System One answer envelopes before output formatting', asy
 		stateInput: 'inputItem',
 		questionInput: 'json',
 		questionsJson: {
-			intent: { type: 'choice', instructions: 'Choose', criteria: { billing: null, technical: null } },
+		intent: { type: 'choice', instructions: 'Choose', criteria: { billing: null, technical: null } },
 			urgent: { type: 'noul', instructions: 'Urgent?' },
 			score: { type: 'score', instructions: 'Rate', criteria: ['Low', 'High'] },
 		},
@@ -534,6 +535,14 @@ test('rejects invalid System One answer envelopes before output formatting', asy
 		const { context } = makeContext(parameters, { body: { model: 'jev-1.13.0', answers, usage: {} } });
 		await assert.rejects(() => new TypeSafe().execute.call(context), /TypeSafe returned invalid/);
 	}
+
+	for (const body of [
+		{ answers: validAnswers, usage: {} },
+		{ model: 'jev-1.13.0', answers: validAnswers, usage: null },
+	]) {
+		const { context } = makeContext(parameters, { body });
+		await assert.rejects(() => new TypeSafe().execute.call(context), /TypeSafe returned invalid/);
+	}
 });
 
 test('rejects null raw instructions and more than 255 Choice routes', async () => {
@@ -548,6 +557,21 @@ test('rejects null raw instructions and more than 255 Choice routes', async () =
 	const { context } = makeContext(rawParameters, response);
 	await assert.rejects(() => new TypeSafe().execute.call(context), /needs valid instructions/);
 
+	const nullCriteria = makeContext(
+		{
+			...rawParameters,
+			questionsJson: {
+				quality: {
+					type: 'score',
+					instructions: 'Score',
+					criteria: ['Low', null],
+				},
+			},
+		},
+		response,
+	);
+	await assert.rejects(() => new TypeSafe().execute.call(nullCriteria.context), /valid criteria levels/);
+
 	const parameters = {
 		operation: 'route',
 		model: 'jev-latest',
@@ -560,4 +584,20 @@ test('rejects null raw instructions and more than 255 Choice routes', async () =
 	};
 	const route = makeContext(parameters, response);
 	await assert.rejects(() => new TypeSafe().execute.call(route.context), /between 2 and 255 routes/);
+});
+
+test('preserves failed items when a non-Error value is thrown', async () => {
+	const parameters = {
+		operation: 'evaluate',
+		model: 'jev-latest',
+		stateInput: 'inputItem',
+		questionInput: 'json',
+		questionsJson: { urgent: { type: 'noul', instructions: 'Urgent?' } },
+		options: {},
+	};
+	const { context } = makeContext(parameters, { __throw: null }, undefined, true);
+
+	const result = await new TypeSafe().execute.call(context);
+
+	assert.match(result[0][0].json.typesafeJev.error.message, /TypeSafe API request failed/);
 });

@@ -66,13 +66,13 @@ The `urgent` value is the probability that the statement is true. Without Simpli
 - **Append to Item** keeps the input JSON and binary data. **Answers Only** and **Response Only** replace the JSON and omit binary data.
 - Successful **Decide and Route** outputs keep the input binary data. Its selected outcome, confidence, raw TypeSafe response, and optional request ID are appended under **Output Field Name**.
 - **Include Request ID** adds the `x-typesafe-request-id` response header only when TypeSafe returned one. API error descriptions also include a returned request ID when available.
-- n8n's **Continue On Fail** returns the incoming JSON with an `error` field; it doesn't retain binary data. In routing mode, failures go to **Review** when that output is enabled, otherwise the first output.
+- n8n's **Continue On Fail** preserves the incoming JSON, binary data, and item pairing. Error details are added under **Output Field Name** (or a non-conflicting `Error`-suffixed field). Routing failures go to **Review**, or to the dedicated **Error** output when low-confidence decisions use the best result.
 
 ## Decide and route
 
 **Choice** creates one output per route, **Yes/No** creates Yes and No, and **Score** creates Pass and Fail. Decisions below the confidence threshold can go to **Review** for human approval or a slower fallback.
 
-Route names define both the decision criteria and the canvas output order. Keep route names and their order static: dynamically reordering routes per item can send a result to the wrong output.
+Route names define both the decision criteria and canvas output order. Recheck connections after renaming or reordering configured routes.
 
 ## AI Agent setup
 

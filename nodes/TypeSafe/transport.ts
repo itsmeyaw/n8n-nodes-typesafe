@@ -59,7 +59,8 @@ function readErrorMessage(body: unknown): string | undefined {
 }
 
 function toApiError(context: Context, error: unknown, itemIndex?: number): NodeApiError {
-	const failure = error as HttpFailure;
+	const rawError = typeof error === 'object' && error !== null ? error : { message: String(error) };
+	const failure = rawError as HttpFailure;
 	const response = failure.response ?? failure.cause?.response;
 	const status = failure.statusCode ?? response?.status ?? response?.statusCode ?? Number(failure.httpCode);
 	const requestId = readHeader(response?.headers, REQUEST_ID_HEADER);
@@ -71,7 +72,7 @@ function toApiError(context: Context, error: unknown, itemIndex?: number): NodeA
 		.filter(Boolean)
 		.join('. ');
 
-	return new NodeApiError(context.getNode(), error as JsonObject, {
+	return new NodeApiError(context.getNode(), rawError as JsonObject, {
 		message: Number.isFinite(status) ? `TypeSafe API returned ${status}` : 'TypeSafe API request failed',
 		description: description || undefined,
 		httpCode: Number.isFinite(status) ? String(status) : undefined,

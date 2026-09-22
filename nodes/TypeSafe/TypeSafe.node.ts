@@ -143,6 +143,10 @@ function isStructuredValue(value: unknown): boolean {
 	return value === null || typeof value === 'string' || typeof value === 'object';
 }
 
+function isNonNullStructuredValue(value: unknown): boolean {
+	return value !== null && (typeof value === 'string' || typeof value === 'object');
+}
+
 function isInstructionValue(value: unknown): boolean {
 	return value !== null && (typeof value === 'string' || typeof value === 'object');
 }
@@ -189,7 +193,7 @@ function validateQuestions(node: INode, questions: IDataObject): IDataObject {
 				!Array.isArray(criteria) ||
 				criteria.length < 2 ||
 				criteria.length > 10 ||
-				criteria.some((entry) => !isStructuredValue(entry))
+				criteria.some((entry) => !isNonNullStructuredValue(entry))
 			) {
 				throw new NodeOperationError(
 					node,
@@ -205,7 +209,7 @@ function validateQuestions(node: INode, questions: IDataObject): IDataObject {
 				criteria === null ||
 				Array.isArray(criteria) ||
 				Object.keys(criteria).some((key) => key !== 'true' && key !== 'false') ||
-				Object.values(criteria).some((entry) => !isStructuredValue(entry))
+				Object.values(criteria).some((entry) => !isNonNullStructuredValue(entry))
 			) {
 				throw new NodeOperationError(node, `Noul question "${id}" has invalid criteria`);
 			}
@@ -328,6 +332,12 @@ function validateSystemOneResponse(
 	if (typeof data.answers !== 'object' || data.answers === null || Array.isArray(data.answers)) {
 		invalidResponse(node, 'answers must be an object');
 	}
+	if (typeof data.model !== 'string' || !data.model.trim()) {
+		invalidResponse(node, 'model must be a non-empty string');
+	}
+	if (typeof data.usage !== 'object' || data.usage === null || Array.isArray(data.usage)) {
+		invalidResponse(node, 'usage must be an object');
+	}
 
 	const answerIds = Object.keys(data.answers);
 	const questionIds = Object.keys(questions);
@@ -404,7 +414,10 @@ function errorField(json: IDataObject, outputField: string): string {
 }
 
 function errorDetails(error: unknown): IDataObject {
-	const value = error as { message?: unknown; description?: unknown; httpCode?: unknown };
+	const value =
+		typeof error === 'object' && error !== null
+			? (error as { description?: unknown; httpCode?: unknown })
+			: {};
 	return {
 		message: value instanceof Error ? value.message : String(error),
 		...(typeof value.description === 'string' ? { description: value.description } : {}),
