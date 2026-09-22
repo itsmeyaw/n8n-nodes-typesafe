@@ -4,11 +4,12 @@ const test = require('node:test');
 const { TypeSafe } = require('../dist/nodes/TypeSafe/TypeSafe.node.js');
 const { TypeSafeApi } = require('../dist/credentials/TypeSafeApi.credentials.js');
 
-test('uses the official HTTPS URL for credential tests', () => {
+test('credential tests use only a configured HTTPS Base URL', () => {
 	const credential = new TypeSafeApi();
 
-	assert.equal(credential.test.request.baseURL, 'https://api.typesafe.ai');
-	assert.doesNotMatch(String(credential.test.request.baseURL), /\$credentials\.baseUrl/);
+	assert.match(String(credential.test.request.baseURL), /\$credentials\.baseUrl/);
+	assert.match(String(credential.test.request.baseURL), /startsWith\(\"https:\/\/\"\)/);
+	assert.match(String(credential.test.request.baseURL), /https:\/\/invalid\.invalid/);
 });
 
 test('builds one batched Jev request from guided questions', async () => {
@@ -187,6 +188,22 @@ test('rejects HTTP Base URLs before sending credential-bearing requests', async 
 		/HTTPS/,
 	);
 	assert.equal(requested, false);
+});
+
+test('rejects HTTP Base URLs during normal execution', async () => {
+	const parameters = {
+		operation: 'evaluate',
+		model: 'jev-latest',
+		stateInput: 'text',
+		stateText: 'Hello',
+		questionInput: 'json',
+		questionsJson: { urgent: { type: 'noul', instructions: 'Urgent?' } },
+	};
+	const { context, getRequest } = makeContext(parameters, response);
+	context.getCredentials = async () => ({ apiKey: 'secret', baseUrl: 'http://proxy.example/' });
+
+	await assert.rejects(() => new TypeSafe().execute.call(context), /HTTPS/);
+	assert.equal(getRequest(), undefined);
 });
 
 test('reports API status, server detail, and request ID', async () => {

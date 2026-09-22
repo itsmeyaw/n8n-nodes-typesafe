@@ -53,7 +53,7 @@ jobs:
           trap 'rm -rf "$verification_dir"' EXIT
           npm install --prefix "$verification_dir" --ignore-scripts --omit=peer "$PACKAGE_NAME@$PACKAGE_VERSION"
           for attempt in $(seq 1 10); do
-            if npm audit signatures --prefix "$verification_dir" --json --include-attestations > "$verification_dir/signatures.json" && node -e "const report = require(process.argv[1]); process.exit(Array.isArray(report.verified) && report.verified.length > 0 ? 0 : 1)" "$verification_dir/signatures.json"; then
+            if npm audit signatures --prefix "$verification_dir" --json --include-attestations > "$verification_dir/signatures.json" && node -e 'const report = require(process.argv[1]); const verified = report.verified?.some(({ name, version, attestations }) => name === process.env.PACKAGE_NAME && version === process.env.PACKAGE_VERSION && attestations?.provenance?.predicateType === "https://slsa.dev/provenance/v1"); process.exit(verified ? 0 : 1)' "$verification_dir/signatures.json"; then
               exit 0
             fi
             test "$attempt" = 10 && exit 1

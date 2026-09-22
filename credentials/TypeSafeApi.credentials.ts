@@ -31,9 +31,11 @@ export class TypeSafeApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
+			validateType: 'url',
 			default: 'https://api.typesafe.ai',
 			description:
 				'HTTPS URL for a TypeSafe proxy or dedicated deployment. Workflow requests reject HTTP URLs to protect your API key.',
+			hint: 'Must start with https://',
 		},
 	];
 
@@ -48,7 +50,8 @@ export class TypeSafeApi implements ICredentialType {
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: 'https://api.typesafe.ai',
+			baseURL:
+				'={{$credentials.baseUrl?.startsWith("https://") ? $credentials.baseUrl.replace(/\\/+$/, "") : "https://invalid.invalid"}}',
 			url: '/v1/models',
 			method: 'GET',
 		},
