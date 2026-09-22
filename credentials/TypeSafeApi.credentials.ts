@@ -27,6 +27,13 @@ export class TypeSafeApi implements ICredentialType {
 			default: '',
 			required: true,
 		},
+		{
+			displayName: 'Base URL',
+			name: 'baseUrl',
+			type: 'string',
+			default: 'https://api.typesafe.ai',
+			description: 'Change only when using a proxy or dedicated TypeSafe deployment',
+		},
 	];
 
 	authenticate: IAuthenticateGeneric = {
@@ -40,7 +47,7 @@ export class TypeSafeApi implements ICredentialType {
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: 'https://api.typesafe.ai',
+			baseURL: '={{$credentials.baseUrl || "https://api.typesafe.ai"}}',
 			url: '/v1/models',
 			method: 'GET',
 		},

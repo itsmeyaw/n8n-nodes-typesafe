@@ -22,9 +22,10 @@
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
     "test": "pnpm build && node --test test/*.test.cjs",
+    "verify:api": "node scripts/verify-api.mjs",
     "prepublishOnly": "n8n-node prerelease"
   },
-  "files": ["dist"],
+  "files": ["dist", "examples"],
   "n8n": {
     "n8nNodesApiVersion": 1,
     "strict": true,

@@ -1,0 +1,112 @@
+{
+  "name": "TypeSafe ticket routing with review",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Run Example",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-500, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "message",
+              "name": "message",
+              "type": "string",
+              "value": "I was charged twice and need a refund today"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sample-ticket",
+      "name": "Sample Ticket",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-280, 0]
+    },
+    {
+      "parameters": {
+        "operation": "route",
+        "model": "jev-latest",
+        "stateInput": "inputItem",
+        "decisionType": "choice",
+        "routeInstructions": "Which team should handle this support ticket?",
+        "choiceRoutes": {
+          "routes": [
+            { "name": "Billing", "description": "Payments, invoices, charges, or refunds" },
+            { "name": "Technical", "description": "Bugs, outages, or integration problems" },
+            { "name": "Sales", "description": "Pricing, plans, or purchase questions" }
+          ]
+        },
+        "reviewHandling": "review",
+        "confidenceThreshold": 0.85,
+        "options": {
+          "includeRequestId": true,
+          "outputField": "decision"
+        }
+      },
+      "id": "typesafe-route",
+      "name": "Route with TypeSafe",
+      "type": "@itsmeyaw/n8n-nodes-typesafe.typeSafe",
+      "typeVersion": 1,
+      "position": [-40, 0]
+    },
+    {
+      "parameters": {},
+      "id": "billing",
+      "name": "Billing Queue",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [220, -180]
+    },
+    {
+      "parameters": {},
+      "id": "technical",
+      "name": "Technical Queue",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [220, -60]
+    },
+    {
+      "parameters": {},
+      "id": "sales",
+      "name": "Sales Queue",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [220, 60]
+    },
+    {
+      "parameters": {},
+      "id": "review",
+      "name": "Human Review",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [220, 180]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Example": {
+      "main": [[{ "node": "Sample Ticket", "type": "main", "index": 0 }]]
+    },
+    "Sample Ticket": {
+      "main": [[{ "node": "Route with TypeSafe", "type": "main", "index": 0 }]]
+    },
+    "Route with TypeSafe": {
+      "main": [
+        [{ "node": "Billing Queue", "type": "main", "index": 0 }],
+        [{ "node": "Technical Queue", "type": "main", "index": 0 }],
+        [{ "node": "Sales Queue", "type": "main", "index": 0 }],
+        [{ "node": "Human Review", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "typesafe-ticket-routing-example"
+}
