@@ -1,0 +1,77 @@
+{
+	"name": "TypeSafe multi-question evaluation",
+	"nodes": [
+		{
+			"parameters": {
+				"content": "## Setup\n1. Add a **TypeSafe AI API** credential to Evaluate Ticket.\n2. This sends one request for the item and both questions.\n3. Replace Sample Ticket with your trigger; keep only facts needed for these decisions.",
+				"height": 170,
+				"width": 430,
+				"color": 5
+			},
+			"id": "setup-note",
+			"name": "Setup",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [-500, -280]
+		},
+		{
+			"parameters": {},
+			"id": "manual-trigger",
+			"name": "Run Example",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [-500, 0]
+		},
+		{
+			"parameters": {
+				"assignments": {
+					"assignments": [
+						{
+							"id": "message",
+							"name": "message",
+							"type": "string",
+							"value": "I was charged twice and need a refund today"
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "sample-ticket",
+			"name": "Sample Ticket",
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [-280, 0]
+		},
+		{
+			"parameters": {
+				"operation": "evaluate",
+				"model": "jev-1.13.0",
+				"stateInput": "inputItem",
+				"questionInput": "json",
+				"questionsJson": "{\n  \"team\": {\n    \"type\": \"choice\",\n    \"instructions\": \"Which team should handle this ticket?\",\n    \"criteria\": {\n      \"Billing\": \"Payments, invoices, charges, or refunds\",\n      \"Technical\": \"Bugs, outages, or integrations\"\n    }\n  },\n  \"urgent\": {\n    \"type\": \"noul\",\n    \"instructions\": \"Does the customer need action today?\"\n  }\n}",
+				"output": "append",
+				"simplify": false,
+				"options": {
+					"outputField": "typesafeJev"
+				}
+			},
+			"id": "typesafe-evaluate",
+			"name": "Evaluate Ticket",
+			"type": "@itsmeyaw/n8n-nodes-typesafe.typeSafe",
+			"typeVersion": 1,
+			"position": [-40, 0]
+		}
+	],
+	"pinData": {},
+	"connections": {
+		"Run Example": {
+			"main": [[{ "node": "Sample Ticket", "type": "main", "index": 0 }]]
+		},
+		"Sample Ticket": {
+			"main": [[{ "node": "Evaluate Ticket", "type": "main", "index": 0 }]]
+		}
+	},
+	"active": false,
+	"settings": { "executionOrder": "v1" },
+	"versionId": "typesafe-multi-question-evaluate-example"
+}
