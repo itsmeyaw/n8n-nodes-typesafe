@@ -41,21 +41,21 @@ jobs:
           PACKAGE_VERSION: ${{ github.ref_name }}
         run: |
           PACKAGE_VERSION="${PACKAGE_VERSION#v}"
-          for attempt in $(seq 1 10); do
-            if test "$(npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --json)" = "\"$PACKAGE_VERSION\""; then
+          for attempt in $(seq 1 30); do
+            if test "$(npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --json --prefer-online 2>/dev/null)" = "\"$PACKAGE_VERSION\""; then
               break
             fi
-            test "$attempt" = 10 && exit 1
-            sleep 6
+            test "$attempt" = 30 && exit 1
+            sleep 10
           done
 
           verification_dir="$(mktemp -d)"
           trap 'rm -rf "$verification_dir"' EXIT
           npm install --prefix "$verification_dir" --ignore-scripts --omit=peer "$PACKAGE_NAME@$PACKAGE_VERSION"
-          for attempt in $(seq 1 10); do
+          for attempt in $(seq 1 30); do
             if npm audit signatures --prefix "$verification_dir" --json --include-attestations > "$verification_dir/signatures.json" && node -e 'const report = require(process.argv[1]); const verified = report.verified?.some(({ name, version, attestations }) => name === process.env.PACKAGE_NAME && version === process.env.PACKAGE_VERSION && attestations?.provenance?.predicateType === "https://slsa.dev/provenance/v1"); process.exit(verified ? 0 : 1)' "$verification_dir/signatures.json"; then
               exit 0
             fi
-            test "$attempt" = 10 && exit 1
-            sleep 6
+            test "$attempt" = 30 && exit 1
+            sleep 10
           done
