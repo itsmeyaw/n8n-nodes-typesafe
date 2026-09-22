@@ -547,6 +547,7 @@ export class TypeSafe implements INodeType {
 					{ name: 'JSON', value: 'json' },
 				],
 				default: 'inputItem',
+				description: 'Choose which input data Jev evaluates as state',
 			},
 			{
 				displayName: 'State',
@@ -577,6 +578,7 @@ export class TypeSafe implements INodeType {
 				],
 				default: 'guided',
 				displayOptions: { show: { operation: ['evaluate'] } },
+				description: 'Use Guided for the form editor or Raw JSON for an existing question definition',
 			},
 			{
 				displayName: 'Questions',
@@ -612,6 +614,7 @@ export class TypeSafe implements INodeType {
 								typeOptions: { rows: 3 },
 								default: '',
 								required: true,
+								description: 'Tell Jev what to decide for this question',
 							},
 							{
 								displayName: 'Name',
@@ -658,6 +661,7 @@ export class TypeSafe implements INodeType {
 								typeOptions: { multipleValues: true, multipleValueButtonText: 'Add Level', rows: 2 },
 								default: [],
 								displayOptions: { show: { type: ['score'] } },
+								description: 'Add 2 to 10 ordered rubric levels, lowest first',
 							},
 							{
 								displayName: 'Type',
@@ -697,6 +701,7 @@ export class TypeSafe implements INodeType {
 				],
 				default: 'choice',
 				displayOptions: { show: { operation: ['route'] } },
+				description: 'Choose the output shape used for routing',
 			},
 			{
 				displayName: 'Instructions',
@@ -782,6 +787,7 @@ export class TypeSafe implements INodeType {
 				],
 				default: 'review',
 				displayOptions: { show: { operation: ['route'] } },
+				description: 'Choose whether low-confidence decisions use the Review output or their best-matching output',
 			},
 			{
 				displayName: 'Confidence Threshold',
@@ -825,12 +831,14 @@ export class TypeSafe implements INodeType {
 						name: 'includeRequestId',
 						type: 'boolean',
 						default: false,
+						description: 'Whether to include the TypeSafe request ID in the output for support and troubleshooting',
 					},
 					{
 						displayName: 'Output Field Name',
 						name: 'outputField',
 						type: 'string',
 						default: 'typesafeJev',
+						description: 'Field name used when appending results to the input item',
 					},
 					{
 						displayName: 'Timeout (Ms)',
@@ -838,6 +846,7 @@ export class TypeSafe implements INodeType {
 						type: 'number',
 						typeOptions: { minValue: 1000 },
 						default: 60000,
+						description: 'Maximum time to wait for TypeSafe before the item fails',
 					},
 				],
 			},

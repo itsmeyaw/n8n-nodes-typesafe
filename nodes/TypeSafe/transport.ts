@@ -1,5 +1,6 @@
 import {
 	NodeApiError,
+	NodeOperationError,
 	type IDataObject,
 	type IExecuteFunctions,
 	type IHttpRequestMethods,
@@ -32,6 +33,22 @@ type HttpFailure = {
 };
 
 const REQUEST_ID_HEADER = 'x-typesafe-request-id';
+const DEFAULT_BASE_URL = 'https://api.typesafe.ai';
+
+function secureBaseUrl(context: Context, value: unknown): string {
+	let url: URL;
+	try {
+		url = new URL(String(value || DEFAULT_BASE_URL));
+	} catch {
+		throw new NodeOperationError(context.getNode(), 'Base URL must be a valid HTTPS URL');
+	}
+
+	if (url.protocol !== 'https:') {
+		throw new NodeOperationError(context.getNode(), 'Base URL must use HTTPS to protect your API key');
+	}
+
+	return url.toString().replace(/\/+$/, '');
+}
 
 function readHeader(
 	headers: Record<string, string | string[] | undefined> | undefined,
@@ -87,7 +104,7 @@ export async function typeSafeRequest<T>(
 	options: { body?: IDataObject; timeout?: number; itemIndex?: number } = {},
 ): Promise<{ data: T; requestId?: string }> {
 	const credentials = await context.getCredentials('typeSafeApi');
-	const baseUrl = String(credentials.baseUrl || 'https://api.typesafe.ai').replace(/\/+$/, '');
+	const baseUrl = secureBaseUrl(context, credentials.baseUrl);
 	const request: IHttpRequestOptions = {
 		method,
 		url: `${baseUrl}${path}`,

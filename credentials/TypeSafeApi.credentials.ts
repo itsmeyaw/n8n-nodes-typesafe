@@ -32,7 +32,8 @@ export class TypeSafeApi implements ICredentialType {
 			name: 'baseUrl',
 			type: 'string',
 			default: 'https://api.typesafe.ai',
-			description: 'Change only when using a proxy or dedicated TypeSafe deployment',
+			description:
+				'HTTPS URL for a TypeSafe proxy or dedicated deployment. Workflow requests reject HTTP URLs to protect your API key.',
 		},
 	];
 
@@ -47,7 +48,7 @@ export class TypeSafeApi implements ICredentialType {
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: '={{$credentials.baseUrl || "https://api.typesafe.ai"}}',
+			baseURL: 'https://api.typesafe.ai',
 			url: '/v1/models',
 			method: 'GET',
 		},

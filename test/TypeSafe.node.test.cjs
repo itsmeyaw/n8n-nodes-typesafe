@@ -2,6 +2,14 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 
 const { TypeSafe } = require('../dist/nodes/TypeSafe/TypeSafe.node.js');
+const { TypeSafeApi } = require('../dist/credentials/TypeSafeApi.credentials.js');
+
+test('uses the official HTTPS URL for credential tests', () => {
+	const credential = new TypeSafeApi();
+
+	assert.equal(credential.test.request.baseURL, 'https://api.typesafe.ai');
+	assert.doesNotMatch(String(credential.test.request.baseURL), /\$credentials\.baseUrl/);
+});
 
 test('builds one batched Jev request from guided questions', async () => {
 	let request;
@@ -32,7 +40,7 @@ test('builds one batched Jev request from guided questions', async () => {
 	const context = {
 		getInputData: () => [{ json: { source: 'test' } }],
 		getNodeParameter: (name, _index, fallback) => parameters[name] ?? fallback,
-		getCredentials: async () => ({ baseUrl: 'https://api.typesafe.ai' }),
+		getCredentials: async () => ({}),
 		getNode: () => ({ name: 'TypeSafe AI', type: 'typeSafe', typeVersion: 1 }),
 		continueOnFail: () => false,
 		helpers: {
@@ -147,7 +155,7 @@ const response = {
 	statusCode: 200,
 };
 
-test('loads models from the credential base URL', async () => {
+test('uses a trailing-slash custom HTTPS Base URL', async () => {
 	const { context, getRequest } = makeContext({}, {
 		body: { models: [{ name: 'jev-latest', description: 'Latest model' }] },
 		headers: {},
@@ -160,6 +168,25 @@ test('loads models from the credential base URL', async () => {
 		{ name: 'jev-latest', value: 'jev-latest', description: 'Latest model' },
 	]);
 	assert.equal(getRequest().url, 'https://proxy.example/v1/models');
+});
+
+test('rejects HTTP Base URLs before sending credential-bearing requests', async () => {
+	let requested = false;
+	const context = {
+		getCredentials: async () => ({ apiKey: 'secret', baseUrl: 'http://proxy.example/' }),
+		getNode: () => ({ name: 'TypeSafe AI', type: 'typeSafe', typeVersion: 1 }),
+		helpers: {
+			httpRequestWithAuthentication: async () => {
+				requested = true;
+			},
+		},
+	};
+
+	await assert.rejects(
+		() => new TypeSafe().methods.loadOptions.getModels.call(context),
+		/HTTPS/,
+	);
+	assert.equal(requested, false);
 });
 
 test('reports API status, server detail, and request ID', async () => {
