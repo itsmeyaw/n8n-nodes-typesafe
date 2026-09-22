@@ -1,4 +1,4 @@
-name: Publish
+name: Publish to npm
 
 on:
   push:
@@ -12,19 +12,26 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 'lts/*'
-          cache: pnpm
+          # Trusted publishing requires Node >=22.14 and npm >=11.5.1.
+          node-version: '24'
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
+      - name: Verify tag matches package version
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          package_version="$(node --print \"require('./package.json').version\")"
+          test "$tag_version" = "$package_version"
       - run: pnpm test
-      - run: |
-          [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          pnpm release
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: pnpm lint
+      - name: Verify npm publish prerequisites
+        run: RELEASE_MODE=true npm publish --dry-run --provenance
+      # In GitHub Actions, n8n-node release skips release-it and only runs
+      # lint, build, and npm publish with RELEASE_MODE and provenance enabled.
+      - name: Publish with npm trusted publishing
+        run: pnpm exec n8n-node release
