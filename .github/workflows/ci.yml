@@ -25,5 +25,4 @@ jobs:
       # test builds first, so no separate build step is needed.
       - run: pnpm test
       - run: pnpm lint
-      - run: pnpm exec n8n-node prerelease
       - run: pnpm package:check
